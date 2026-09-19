@@ -1,0 +1,90 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "16968c4e-5dab-492a-9dbe-bf01878c952b",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import requests\n",
+    "\n",
+    "def scan_website(url):\n",
+    "    print(f\"Scanning {url}...\\n\")\n",
+    "    report = []\n",
+    "    \n",
+    "    try:\n",
+    "        response = requests.get(url, timeout=5)\n",
+    "    except requests.exceptions.RequestException as e:\n",
+    "        print(f\"Error connecting to target: {e}\")\n",
+    "        return\n",
+    "\n",
+    "    # 1. Check for exposed server versions / outdated hints\n",
+    "    server_header = response.headers.get(\"Server\")\n",
+    "    if server_header:\n",
+    "        report.append(f\"[INFO] Server banner detected: {server_header} (May reveal software version)\")\n",
+    "    else:\n",
+    "        report.append(\"[SECURE] Server header is hidden.\")\n",
+    "\n",
+    "    # 2. Check for common missing security headers (weak configuration)\n",
+    "    recommended_headers = [\n",
+    "        \"Strict-Transport-Security\",\n",
+    "        \"X-Content-Type-Options\",\n",
+    "        \"X-Frame-Options\",\n",
+    "        \"Content-Security-Policy\"\n",
+    "    ]\n",
+    "\n",
+    "    for header in recommended_headers:\n",
+    "        if header not in response.headers:\n",
+    "            report.append(f\"[WARN] Missing security header: {header}\")\n",
+    "        else:\n",
+    "            report.append(f\"[PASS] {header} is present.\")\n",
+    "\n",
+    "    # 3. Generate a simple vulnerability report\n",
+    "    print(\"\\n--- Scan Results ---\")\n",
+    "    for item in report:\n",
+    "        print(item)\n",
+    "\n",
+    "    with open(\"vulnerability_report.txt\", \"w\") as f:\n",
+    "        f.write(f\"Vulnerability Report for {url}\\n\")\n",
+    "        f.write(\"=\" * 40 + \"\\n\")\n",
+    "        f.write(\"\\n\".join(report))\n",
+    "\n",
+    "    print(\"\\nReport saved to 'vulnerability_report.txt'\")\n",
+    "\n",
+    "if __name__ == \"__main__\":\n",
+    "    target = input(\"Enter target URL (e.g., http://scanme.nmap.org or http://localhost:8000): \")\n",
+    "    scan_website(target)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "e8334e21-2da5-444d-a496-c2fb861fb783",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python [conda env:netflix]",
+   "language": "python",
+   "name": "conda-env-netflix-py"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.12.7"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
